@@ -80,6 +80,30 @@ This specifies
 The webhook should be a server that can handle request coming from the configured path (`/add-cred` in the above).
 The request and response types are both [AdmissionReview](https://godoc.org/k8s.io/api/admission/v1beta1#AdmissionReview)
 
+### Webhook example
+
+Tested on kubeflow 1.1
+```yaml
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: add-gcp-webhook # can be changed 
+webhooks:
+  - name: add-gcp-webhook.kubeflow.org # prefix can be changed 
+    clientConfig:
+      service:
+        name: admission-webhook-service # Fixed. Mandatory
+        namespace: kubeflow  # Fixed. Mandatory
+        path: "/apply-poddefault"  # Fixed. Mandatory
+      caBundle: $CA_BUNDLE  # Should be changed to your ca_bundle
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+```
+To get valid ca bundle you can run `kubectl get secrets -n kubeflow webhook-certs -o jsonpath='{.data.ca\.crt}'`
+
 ## Reference
 1. [K8S PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset)
 1. https://github.com/jpeeler/podpreset-crd
